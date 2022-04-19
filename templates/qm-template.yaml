@@ -26,8 +26,7 @@ objects:
         imagePullPolicy: Always
       version: ${VERSION}
       tracing:
-        enabled: true
-        namespace: ${TRACING_NS}
+        enabled: false
       web:
         enabled: true
       securityContext:
