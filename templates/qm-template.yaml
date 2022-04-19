@@ -27,6 +27,7 @@ objects:
       version: ${VERSION}
       tracing:
         enabled: false
+        namespace: ${TRACING_NS}
       web:
         enabled: true
       securityContext:
