@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: mq-template
+objects:
+  - apiVersion: mq.ibm.com/v1beta1
+    kind: QueueManager
+    metadata:
+      name: ${RELEASE_NAME}
+    spec:
+      license:
+        accept: true
+        license: ${LICENSE}
+        use: NonProduction
+      queueManager:
+        name: ${QM_NAME}
+        storage:
+          queueManager:
+            type: persistent-claim
+          defaultClass: ${FILE_STORAGE_CLASS}
+          persistedData:
+            enabled: true
+          recoveryLogs:
+            enabled: true
+        image: ${IMAGE}
+        imagePullPolicy: Always
+      version: ${VERSION}
+      tracing:
+        enabled: true
+        namespace: ${TRACING_NS}
+      web:
+        enabled: true
+      securityContext:
+        # Added for IBM storage use
+        supplementalGroups: [99]
+      pki:
+        keys:
+          - name: default
+            secret:
+              items:
+                - ${MQ_SERVER_CERT_KEY}
+                - ${MQ_SERVER_KEY_KEY}
+              secretName: ${MQ_SERVER_KEY_CERT_SECRET}
+        trust:
+          - name: ca
+            secret:
+              items:
+                - ${CA_CERT_KEY}
+              secretName: ${CA_CERT_SECRET}
+parameters:
+- name: QM_NAME
+  value: 'QM1'
+  description: Queue Manager name
+- name: IMAGE
+  description: Image repo and tag
+- name: RELEASE_NAME
+  value: mq-from-pipeline
+  description: Image repo and tag
+- name: MQ_SERVER_KEY_CERT_SECRET
+  description: Name of the secret which contains MQ server certficate and key
+  value: mq-key-cert
+- name: MQ_SERVER_CERT_KEY
+  description: Key of the MQ server certificate within the secret
+  value: mq-server.crt
+- name: MQ_SERVER_KEY_KEY
+  description: Key of the MQ server key within the secret
+  value: mq-server.key
+- name: CA_CERT_SECRET
+  description: Name of the secret that contains the CA certficate
+  value: cpat-ca-cert
+- name: CA_CERT_KEY
+  description: Key of the CA cert within the secret
+  value: cpat-ca.crt
+- name: VERSION
+  description: the version of MQ the QMGR will be
+  value: 9.2.0.1-r1-eus
+- name: LICENSE
+  description: The license key associated with CP4I
+  value: L-RJON-BUVMQX
+- name: FILE_STORAGE_CLASS
+  description: File storage class for multi-instance queue manager data and logs
+  value: ibmc-file-gold-gid
+- name: TRACING_NS
+  description: namespace of the Operations Dashboard
